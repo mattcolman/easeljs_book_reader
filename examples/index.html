@@ -11,9 +11,80 @@
   <script src="../lib/TweenMax.js"></script>
   <script src="../src/book_reader.js"></script>
 
+<script type="text/javascript">
+
+  var stage;
+  var stageWidth;
+  var stageHeight;
+  var br; // book reader
+  var manifest;
+
+  function init() {
+    setupStage();
+    addBookReader();
+    addImages();
+  }
+
+  function setupStage() {
+    var canvas = document.getElementById("maincanvas");
+    stage = new createjs.Stage(canvas);
+    stage.enableMouseOver();
+    stageWidth = canvas.width;
+    stageHeight = canvas.height;
+    createjs.Ticker.addEventListener("tick", stage);
+  }
+
+  function addBookReader() {
+    options = {
+      numPages: 10,
+      x: 0,
+      y: 0,
+      pageWidth: 470,
+      pageHeight: 748,
+      pageGap: 0,
+      startPage: 0
+    }
+
+    br = new BookReader(options)
+    stage.addChild(br)
+  }
+
+  function addImages() {
+    var assetsPath = "../assets/images/";
+    manifest = [
+      {src: "img1.jpg", id: "img1"},
+      {src: "img2.jpg", id: "img2"},
+      {src: "img3.jpg", id: "img3"},
+      {src: "img4.jpg", id: "img4"},
+      {src: "img5.jpg", id: "img5"}
+    ]
+
+    queue = new createjs.LoadQueue(false);
+    queue.on("complete", createjs.proxy(handleComplete, this));
+    queue.loadManifest(manifest, true, assetsPath);
+  }
+
+  createjs.Bitmap.prototype.fitInto = function(width, height) {
+    scaleX = width / this.image.width;
+    scaleY = height / this.image.height;
+    this.scaleX = this.scaleY = Math.min(scaleX, scaleY);
+  }
+
+  function handleComplete() {
+    console.log('handleComplete')
+    for (var i = 0; i < manifest.length; i++) {
+      page = br.getPage(i)
+      img = queue.getResult(manifest[i].id)
+      bmp = new createjs.Bitmap(img)
+      bmp.fitInto(br.pageWidth, br.pageHeight)
+      page.addChild(bmp)
+    };
+  }
+
+</script>
 </head>
 
-<body>
+<body onload="init()">
 <header>
 </header>
 

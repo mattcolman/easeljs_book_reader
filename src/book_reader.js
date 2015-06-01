@@ -10,13 +10,13 @@
       if (options == null) {
           options = {};
         }
-      this.x = (ref = options.x) != null ? ref : 280;
-      this.y = (ref1 = options.y) != null ? ref1 : 10;
+      this.x = (ref = options.x) != null ? ref : 0;
+      this.y = (ref1 = options.y) != null ? ref1 : 0;
       this.pageWidth = (ref2 = options.pageWidth) != null ? ref2 : 470;
       this.pageHeight = (ref3 = options.pageHeight) != null ? ref3 : 748;
       this.pageGap = (ref4 = options.pageGap) != null ? ref4 : 0;
       this.maskWidth = (ref5 = options.maskWidth) != null ? ref5 : this.pageWidth * 2 + this.pageGap;
-      initPages = (ref6 = options.numPages) != null ? ref6 : 0;
+      initPages = (ref6 = options.numPages) != null ? ref6 : 2;
       startPage = (ref7 = options.startPage) != null ? ref7 : 0;
       initPages = Math.max(initPages, 2);
       this.masks = [];
@@ -110,46 +110,46 @@
       if (direction === 1) {
         leftMask = this._addMask(this.x, this.y, "left");
         rightMask = this._addMask(this.x + this.maskWidth, this.y, "right");
-        this.tweenMax.to(leftMask, time, {
+        TweenMax.to(leftMask, time, {
           x: this.x - this.maskWidth + this.pageWidth + this.pageGap / 2,
-          eases: this.eases.Power2.easeOut
+          ease: Power2.easeOut
         });
-        this.tweenMax.to(rightMask, time, {
+        TweenMax.to(rightMask, time, {
           x: this.x + this.pageWidth + this.pageGap / 2,
-          eases: this.eases.Power2.easeOut
+          ease: Power2.easeOut
         });
-        this.tweenMax.from(leftPage, time, {
+        TweenMax.from(leftPage, time, {
           x: this.stageD.width - 100,
-          eases: this.eases.Power1.easeOut
+          ease: Power1.easeOut
         });
-        grad = this._addGradient("#000000", Graphics.getRGB(0, 0, 0, 0));
+        grad = this._addGradient("#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
         grad.proportionalRegAndReposition(1, 0);
         rightPage.addChild(grad);
       } else {
         leftMask = this._addMask(this.x - this.maskWidth, this.y, "left");
         rightMask = this._addMask(this.x, this.y, "right");
-        this.tweenMax.to(leftMask, time, {
+        TweenMax.to(leftMask, time, {
           x: this.x - this.maskWidth + this.pageWidth + this.pageGap / 2,
-          eases: this.eases.Power2.easeOut
+          ease: Power2.easeOut
         });
-        this.tweenMax.to(rightMask, time, {
+        TweenMax.to(rightMask, time, {
           x: this.x + this.pageWidth + this.pageGap / 2,
-          eases: this.eases.Power2.easeOut
+          ease: Power2.easeOut
         });
-        this.tweenMax.from(rightPage, time, {
+        TweenMax.from(rightPage, time, {
           x: this.x - this.pageWidth,
-          eases: this.eases.Power1.easeOut
+          ease: Power1.easeOut
         });
-        grad = this._addGradient(Graphics.getRGB(0, 0, 0, 0), "#000000");
+        grad = this._addGradient(createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
         leftPage.addChild(grad);
       }
       leftPage.mask = leftMask;
       rightPage.mask = rightMask;
       grad.scaleX = .5;
-      this.tweenMax.to(grad, time * .9, {
+      TweenMax.to(grad, time * .9, {
         scaleX: 1,
         alpha: 0,
-        eases: this.eases.Power3.easeOut
+        ease: Power3.easeOut
       });
       //this.stage.mouseEnabled = false;
       return this.delayedCall(time, (function(_this) {
@@ -216,12 +216,20 @@
       }
     };
 
+    makeRect = function(w, h, color) {
+      g = new createjs.Graphics()
+      g.beginFill(color)
+       .drawRect(0, 0, w, h)
+      s = new createjs.Shape(g)
+      return s;
+    }
+
     p._addMask = function(x, y, side) {
       var color, h, mask, w;
       color = side === "left" ? "#ff0000" : "#ffff00";
       w = this.maskWidth;
       h = this.pageHeight;
-      mask = ShapeUtil.makeRect(w, h, color);
+      mask = makeRect(w, h, color);
       mask.alpha = .3;
       mask.set({
         x: x,
@@ -235,9 +243,9 @@
       var g, h, s, w;
       w = this.pageWidth;
       h = this.pageHeight;
-      g = new Graphics();
+      g = new createjs.Graphics();
       g.beginLinearGradientFill([c1, c2], [0, 1], 0, 0, w, 0).drawRect(0, 0, w, h);
-      s = new Shape(g);
+      s = new createjs.Shape(g);
       return s;
     };
 
@@ -256,7 +264,7 @@
       this.book = book;
       this.bounds = bounds;
       this.initialize();
-      white = ShapeUtil.makeRect(this.bounds.width, this.bounds.height, "#ffffff", 0, "#000000");
+      white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
       this.addChild(white);
       gradWidth = 40;
       grad = this._makeGradient(gradWidth, this.bounds.height);
@@ -289,10 +297,10 @@
       var cnt, g1, g2, s1, s2;
       cnt = new createjs.Container;
       g1 = new createjs.Graphics();
-      g1.beginLinearGradientFill([Graphics.getRGB(0, 0, 0, 0), Graphics.getRGB(0, 0, 0, 0.5)], [1, 0], 0, 0, w, 0).drawRect(0, 0, w, h);
+      g1.beginLinearGradientFill([createjs.Graphics.getRGB(0, 0, 0, 0), createjs.Graphics.getRGB(0, 0, 0, 0.5)], [1, 0], 0, 0, w, 0).drawRect(0, 0, w, h);
       s1 = new createjs.Shape(g1);
       g2 = new createjs.Graphics();
-      g2.beginLinearGradientFill([Graphics.getRGB(0, 0, 0, 0), Graphics.getRGB(0, 0, 0, .7)], [1, 0], 0, 0, 3, 0).drawRect(0, 0, 10, h);
+      g2.beginLinearGradientFill([createjs.Graphics.getRGB(0, 0, 0, 0), createjs.Graphics.getRGB(0, 0, 0, .7)], [1, 0], 0, 0, 3, 0).drawRect(0, 0, 10, h);
       s2 = new createjs.Shape(g2);
       cnt.addChild(s1, s2);
       cnt.cache(0, 0, w, h);

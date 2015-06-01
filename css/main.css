@@ -3,5 +3,11 @@ body {
 }
 
 #background {
+  background-color: #333333;
+  width: 1366px;
+  height: 768px;
+  position: relative;
+  margin: 0 auto 0 0;
+  padding: 0;
 }
 

@@ -2,9 +2,8 @@
 
   BookReader = (function() {
 
-    function BookReader(options) {
-      this.Container_constructor();
-
+    function BookReader(container, options) {
+      this.container = container;
       this.stageD = {x: 0, y: 0, width: 1366, height: 768}
 
       if (options == null) {
@@ -28,7 +27,7 @@
       this.showPage(this.currentPageNo);
     };
 
-    var p = createjs.extend(BookReader, createjs.Container);
+    var p = createjs.extend(BookReader, createjs.EventDispatcher);
 
   // public properties:
     BookReader.DEBUG = false
@@ -39,6 +38,10 @@
 
   // public methods:
     p.handleClick = function(target) {
+      console.log("handleClick!!")
+      if (target.pageNumber != null) {
+        this.turnPage(-1 + target.pageNumber%2*2)
+      }
       this.dispatchEvent("click", target);
     };
 
@@ -75,7 +78,8 @@
         y: this.y
       });
       page.visible = false;
-      this.addChild(page);
+      page.clickable = true;
+      this.container.addChild(page);
       this.allPages.push(page);
       this.numPages++;
     };
@@ -99,13 +103,13 @@
 
       console.log('BookReader: show pages', leftPage.name, rightPage.name);
 
-      this.addChild(rightPage, leftPage);
+      this.container.addChild(rightPage, leftPage);
       rightPage.visible = true;
       leftPage.visible = true;
       ref = this.masks;
       for (k = 0, len = ref.length; k < len; k++) {
         mask = ref[k];
-        this.removeChild(mask);
+        this.container.removeChild(mask);
       }
       if (direction === 1) {
         leftMask = this._addMask(this.x, this.y, "left");
@@ -122,8 +126,8 @@
           x: this.stageD.width - 100,
           ease: Power1.easeOut
         });
-        grad = this._addGradient("#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
-        grad.proportionalRegAndReposition(1, 0);
+        grad = this._addGradient(this.pageWidth, this.pageHeight, "#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
+        grad.regX = this.pageWidth;
         rightPage.addChild(grad);
       } else {
         leftMask = this._addMask(this.x - this.maskWidth, this.y, "left");
@@ -140,7 +144,7 @@
           x: this.x - this.pageWidth,
           ease: Power1.easeOut
         });
-        grad = this._addGradient(createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
+        grad = this._addGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
         leftPage.addChild(grad);
       }
       leftPage.mask = leftMask;
@@ -152,9 +156,9 @@
         ease: Power3.easeOut
       });
       //this.stage.mouseEnabled = false;
-      return this.delayedCall(time, (function(_this) {
+      TweenMax.delayedCall(time, (function(_this) {
         return function() {
-          _this.stage.mouseEnabled = true;
+         // _this.stage.mouseEnabled = true;
           _this.showPage(pageNo);
           _this.dispatchEvent("page-turn", _this.currentPageNo, _this.currentPageNo - increment);
         };
@@ -170,40 +174,43 @@
     };
 
     p._setupClickObject = function() {
-      var clicker;
-      clicker = new createjs.Container;
+      //var clicker;
+      //clicker = new createjs.Container;
       //clicker.addHitArea(new createjs.Rectangle(0, 0, this.stageD.width, this.stageD.height));
-      this.addChild(clicker);
-      //clicker.onPress = this._handlePress;
-      //clicker.onClick = this._handleClick;
+      //this.addChild(clicker);
+      this.container.addEventListener("mousedown", createjs.proxy(this._handlePress, this))
+      this.container.addEventListener("click", createjs.proxy(this._handleClick, this))
     };
 
     p._handlePress = function(e) {
+      console.log('mouse DOWN!')
       return this.startX = e.stageX;
     };
 
-    p._handleClick = function(e) {
-      var clickable, distance, endX, findClickable, k, len, objUnderPoint, possibleCarousel, ref, threshold;
-      findClickable = function(o) {
-        while (o) {
-          if (o.clickable) {
-            return o;
-          }
-          o = o.parent;
+    findClickable = function(o) {
+      while (o) {
+        if (o.clickable) {
+          return o;
         }
-        return null;
-      };
-      threshold = 50;
-      endX = e.stageX;
-      distance = endX - this.startX;
+        o = o.parent;
+      }
+      return null;
+    };
+
+    p._handleClick = function(e) {
+      console.log('mouse UP!')
+      var threshold = 50;
+      var endX = e.stageX;
+      var distance = endX - this.startX;
       if (distance > threshold) {
-        return this.turnPage(-1);
+        this.turnPage(-1);
       } else if (distance < -threshold) {
-        return this.turnPage(1);
+        this.turnPage(1);
       } else {
-        ref = this.getObjectsUnderPoint(e.stageX, e.stageY);
-        for (k = 0, len = ref.length; k < len; k++) {
-          possibleCarousel = ref[k];
+        var objUnderPoint;
+        objects = e.currentTarget.getObjectsUnderPoint(e.stageX, e.stageY);
+        for (k = 0, len = objects.length; k < len; k++) {
+          possibleCarousel = objects[k];
           clickable = findClickable(possibleCarousel);
           if ((clickable != null) && clickable.parent.visible) {
             objUnderPoint = clickable;
@@ -211,7 +218,7 @@
           }
         }
         if (objUnderPoint != null) {
-          return this.handleClick(objUnderPoint);
+          this.handleClick(objUnderPoint);
         }
       }
     };
@@ -239,17 +246,14 @@
       return mask;
     };
 
-    p._addGradient = function(c1, c2) {
-      var g, h, s, w;
-      w = this.pageWidth;
-      h = this.pageHeight;
+    p._addGradient = function(w, h, c1, c2) {
       g = new createjs.Graphics();
       g.beginLinearGradientFill([c1, c2], [0, 1], 0, 0, w, 0).drawRect(0, 0, w, h);
       s = new createjs.Shape(g);
       return s;
     };
 
-    return createjs.promote(BookReader, "Container");
+    return createjs.promote(BookReader, "EventDispatcher");
 
   })();
 
@@ -275,9 +279,9 @@
         grad.scaleX = -1;
       }
       this.addChild(grad);
-      this.name = this.book.numPages;
+      this.pageNumber = this.book.numPages;
       if (this.book.debug) {
-        this.showPageNumber(this.book.numPages);
+        this.showPageNumber(this.pageNumber);
       }
     }
 

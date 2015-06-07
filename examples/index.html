@@ -45,8 +45,9 @@
       startPage: 0
     }
 
-    br = new BookReader(options)
-    stage.addChild(br)
+    cnt = new createjs.Container()
+    stage.addChild(cnt)
+    br = new BookReader(cnt, options)
   }
 
   function addImages() {

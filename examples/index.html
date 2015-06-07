@@ -74,10 +74,16 @@
   function handleComplete() {
     console.log('handleComplete')
     for (var i = 0; i < manifest.length; i++) {
-      page = br.getPage(i)
+      page = br.getPageContainer(i)
       img = queue.getResult(manifest[i].id)
       bmp = new createjs.Bitmap(img)
-      bmp.fitInto(br.pageWidth, br.pageHeight)
+      scaleX = br.pageWidth / img.width;
+      scaleY = br.pageHeight / img.height;
+      scale = Math.min(scaleX, scaleY);
+      bmp.scaleX = bmp.scaleY = scale
+      bmp.cache(0, 0, img.width, img.height, scale)
+
+      //bmp.fitInto(br.pageWidth, br.pageHeight)
       page.addChild(bmp)
     };
   }

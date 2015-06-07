@@ -88,6 +88,10 @@
       return this.allPages[i];
     };
 
+    p.getPageContainer = function(i) {
+      return this.allPages[i].container;
+    }
+
     p.turnPage = function(direction) {
       var grad, increment, k, leftMask, leftPage, len, mask, pageNo, ref, rightMask, rightPage, time;
       increment = direction * 2;
@@ -126,7 +130,7 @@
           x: this.stageD.width - 100,
           ease: Power1.easeOut
         });
-        grad = this._addGradient(this.pageWidth, this.pageHeight, "#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
+        grad = makeGradient(this.pageWidth, this.pageHeight, "#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
         grad.regX = this.pageWidth;
         rightPage.addChild(grad);
       } else {
@@ -144,7 +148,7 @@
           x: this.x - this.pageWidth,
           ease: Power1.easeOut
         });
-        grad = this._addGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
+        grad = makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
         leftPage.addChild(grad);
       }
       leftPage.mask = leftMask;
@@ -246,7 +250,7 @@
       return mask;
     };
 
-    p._addGradient = function(w, h, c1, c2) {
+    makeGradient = function(w, h, c1, c2) {
       g = new createjs.Graphics();
       g.beginLinearGradientFill([c1, c2], [0, 1], 0, 0, w, 0).drawRect(0, 0, w, h);
       s = new createjs.Shape(g);
@@ -271,14 +275,15 @@
       white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
       this.addChild(white);
       gradWidth = 40;
-      grad = this._makeGradient(gradWidth, this.bounds.height);
+      grad = makeGradient(gradWidth, this.bounds.height);
       if (this.book.numPages % 2) {
         grad.scaleX = 1;
       } else {
         grad.x = this.bounds.width;
         grad.scaleX = -1;
       }
-      this.addChild(grad);
+      this.container = new createjs.Container();
+      this.addChild(this.container, grad);
       this.pageNumber = this.book.numPages;
       if (this.book.debug) {
         this.showPageNumber(this.pageNumber);
@@ -288,8 +293,7 @@
     var p2 = createjs.extend(Page, createjs.Container);
 
     p2.showPageNumber = function(num) {
-      var txt;
-      txt = new Text("" + num, "normal 20px Arial", "#000");
+      var txt = new createjs.Text("" + num, "normal 20px Arial", "#000");
       txt.set({
         x: 0,
         y: 0
@@ -297,7 +301,7 @@
       return this.addChild(txt);
     };
 
-    p2._makeGradient = function(w, h) {
+    makeGradient = function(w, h) {
       var cnt, g1, g2, s1, s2;
       cnt = new createjs.Container;
       g1 = new createjs.Graphics();

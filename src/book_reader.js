@@ -18,6 +18,10 @@
       initPages = (ref6 = options.numPages) != null ? ref6 : 2;
       startPage = (ref7 = options.startPage) != null ? ref7 : 0;
       initPages = Math.max(initPages, 2);
+      // this._shadowLeft  = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 1), createjs.Graphics.getRGB(255, 0, 0, 0))
+      // this._shadowRight = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 0), createjs.Graphics.getRGB(255, 0, 0, 1))
+      this._shadowLeftBlack = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 1), createjs.Graphics.getRGB(0, 0, 0, 1))
+      this._shadowRightBlack = this._shadowLeftBlack.clone()
       this.masks = [];
       this.numPages = 0;
       this.allPages = [];
@@ -101,7 +105,9 @@
         return;
       }
       //this.playSound('page turn');
-      time = .25;
+      time = .4;
+      //time = 5
+      console.log('pageNo', pageNo)
       rightPage = this.allPages[pageNo + 1];
       leftPage = this.allPages[pageNo];
 
@@ -127,12 +133,19 @@
           ease: Power2.easeOut
         });
         TweenMax.from(leftPage, time, {
-          x: this.stageD.width - 100,
-          ease: Power1.easeOut
+          x: this.stageD.width - this.pageWidth/2,
+          ease: Power2.easeOut
         });
-        grad = makeGradient(this.pageWidth, this.pageHeight, "#000000", createjs.Graphics.getRGB(0, 0, 0, 0));
-        grad.regX = this.pageWidth;
-        rightPage.addChild(grad);
+        // grad = this._shadowRight
+        // grad.regX = this.pageWidth;
+        // rightPage.addChild(grad);
+
+        currentLeftPage = this.allPages[this.currentPageNo];
+        currentLeftPage.addChild(this._shadowLeftBlack.set({alpha:1}));
+        TweenMax.from(this._shadowLeftBlack, time*.8, {delay: time*.2, alpha: 0, ease: Power2.easeOut})
+
+        rightPage.addChild(this._shadowRightBlack.set({alpha:1}));
+        TweenMax.to(this._shadowRightBlack, time*.8, {alpha: 0, ease: Power2.easeOut})
       } else {
         leftMask = this._addMask(this.x - this.maskWidth, this.y, "left");
         rightMask = this._addMask(this.x, this.y, "right");
@@ -146,19 +159,26 @@
         });
         TweenMax.from(rightPage, time, {
           x: this.x - this.pageWidth,
-          ease: Power1.easeOut
+          ease: Power2.easeOut
         });
-        grad = makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 0), "#000000");
-        leftPage.addChild(grad);
+        // grad = this._shadowLeft
+        // leftPage.addChild(grad);
+
+        currentRightPage = this.allPages[this.currentPageNo+1];
+        currentRightPage.addChild(this._shadowRightBlack.set({alpha:1}));
+        TweenMax.from(this._shadowRightBlack, time*.8, {delay: time*.2, alpha: 0, ease: Power2.easeOut})
+
+        leftPage.addChild(this._shadowLeftBlack.set({alpha:1}));
+        TweenMax.to(this._shadowLeftBlack, time*.8, {alpha: 0, ease: Power2.easeOut})
       }
       leftPage.mask = leftMask;
       rightPage.mask = rightMask;
-      grad.scaleX = .5;
-      TweenMax.to(grad, time * .9, {
-        scaleX: 1,
-        alpha: 0,
-        ease: Power3.easeOut
-      });
+      // grad.scaleX = .5;
+      // TweenMax.to(grad, time * .9, {
+      //   scaleX: 1,
+      //   alpha: 0,
+      //   ease: Power3.easeOut
+      // });
       //this.stage.mouseEnabled = false;
       TweenMax.delayedCall(time, (function(_this) {
         return function() {
@@ -250,7 +270,7 @@
       return mask;
     };
 
-    makeGradient = function(w, h, c1, c2) {
+    p._makeGradient = function(w, h, c1, c2) {
       g = new createjs.Graphics();
       g.beginLinearGradientFill([c1, c2], [0, 1], 0, 0, w, 0).drawRect(0, 0, w, h);
       s = new createjs.Shape(g);
@@ -275,7 +295,10 @@
       white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
       this.addChild(white);
       gradWidth = 40;
-      grad = makeGradient(gradWidth, this.bounds.height);
+      if (book._gradientImage == null) {
+        book._gradientImage = this._makeGradient(gradWidth, this.bounds.height)
+      }
+      grad = new createjs.Bitmap(book._gradientImage)
       if (this.book.numPages % 2) {
         grad.scaleX = 1;
       } else {
@@ -301,7 +324,7 @@
       return this.addChild(txt);
     };
 
-    makeGradient = function(w, h) {
+    p2._makeGradient = function(w, h) {
       var cnt, g1, g2, s1, s2;
       cnt = new createjs.Container;
       g1 = new createjs.Graphics();
@@ -312,7 +335,7 @@
       s2 = new createjs.Shape(g2);
       cnt.addChild(s1, s2);
       cnt.cache(0, 0, w, h);
-      return cnt;
+      return cnt.cacheCanvas;
     };
 
     return createjs.promote(Page, "Container");

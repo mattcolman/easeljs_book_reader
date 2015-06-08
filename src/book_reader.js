@@ -4,17 +4,16 @@
 
     function BookReader(container, options) {
       this.container = container;
-      this.stageD = {x: 0, y: 0, width: 1366, height: 768}
 
       if (options == null) options = {};
-      this.x          = options.x != null          ? options.x : 0;
-      this.y          = options.y != null          ? options.y : 0;
-      this.pageWidth  = options.pageWidth != null  ? options.pageWidth : 470;
+      this.x          = options.x != null          ? options.x          : 0;
+      this.y          = options.y != null          ? options.y          : 0;
+      this.pageWidth  = options.pageWidth != null  ? options.pageWidth  : 470;
       this.pageHeight = options.pageHeight != null ? options.pageHeight : 748;
-      this.pageGap    = options.pageGap != null    ? options.pageGap : 0;
-      this.maskWidth  = options.maskWidth != null  ? options.maskWidth : this.pageWidth * 2 + this.pageGap;
-      initPages       = options.numPages != null   ? options.numPages : 2;
-      startPage       = options.startPage != null  ? options.startPage : 0;
+      this.pageGap    = options.pageGap != null    ? options.pageGap    : 0;
+      this.bookWidth  = options.bookWidth != null  ? options.bookWidth  : this.pageWidth * 2 + this.pageGap;
+      initPages       = options.numPages != null   ? options.numPages   : 2;
+      startPage       = options.startPage != null  ? options.startPage  : 0;
 
       initPages = Math.max(initPages, 2);
       // this._shadowLeft  = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 1), createjs.Graphics.getRGB(255, 0, 0, 0))
@@ -33,11 +32,7 @@
     var p = createjs.extend(BookReader, createjs.EventDispatcher);
 
   // public properties:
-    BookReader.DEBUG = false
-
-  // public properties:
-    //p.shipFlame;
-
+    p.DEBUG = false
 
   // public methods:
     p.handleClick = function(target) {
@@ -122,9 +117,9 @@
       }
       if (direction === 1) {
         leftMask = this._addMask(this.x, this.y, "left");
-        rightMask = this._addMask(this.x + this.maskWidth, this.y, "right");
+        rightMask = this._addMask(this.x + this.bookWidth, this.y, "right");
         TweenMax.to(leftMask, time, {
-          x: this.x - this.maskWidth + this.pageWidth + this.pageGap / 2,
+          x: this.x - this.bookWidth + this.pageWidth + this.pageGap / 2,
           ease: Power2.easeOut
         });
         TweenMax.to(rightMask, time, {
@@ -132,7 +127,7 @@
           ease: Power2.easeOut
         });
         TweenMax.from(leftPage, time, {
-          x: this.stageD.width - this.pageWidth/2,
+          x: this.getWidth() - this.pageWidth/2,
           ease: Power2.easeOut
         });
         // grad = this._shadowRight
@@ -146,10 +141,10 @@
         rightPage.addChild(this._shadowRightBlack.set({alpha:1}));
         TweenMax.to(this._shadowRightBlack, time*.8, {alpha: 0, ease: Power2.easeOut})
       } else {
-        leftMask = this._addMask(this.x - this.maskWidth, this.y, "left");
+        leftMask = this._addMask(this.x - this.bookWidth, this.y, "left");
         rightMask = this._addMask(this.x, this.y, "right");
         TweenMax.to(leftMask, time, {
-          x: this.x - this.maskWidth + this.pageWidth + this.pageGap / 2,
+          x: this.x - this.bookWidth + this.pageWidth + this.pageGap / 2,
           ease: Power2.easeOut
         });
         TweenMax.to(rightMask, time, {
@@ -189,7 +184,7 @@
     };
 
     p.getWidth = function() {
-      return this.maskWidth;
+      return this.bookWidth;
     };
 
     p.getHeight = function() {
@@ -255,7 +250,7 @@
 
     p._addMask = function(x, y, side) {
       var color = side === "left" ? "#ff0000" : "#ffff00";
-      var w = this.maskWidth;
+      var w = this.bookWidth;
       var h = this.pageHeight;
       var mask = makeRect(w, h, color);
       mask.alpha = .3;

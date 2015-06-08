@@ -36,11 +36,11 @@
 
   function addBookReader() {
     options = {
-      numPages: 10,
+      numPages: 6,
       x: 0,
       y: 0,
-      pageWidth: 470,
-      pageHeight: 748,
+      pageWidth: 500,
+      pageHeight: 700,
       pageGap: 0,
       startPage: 0
     }
@@ -48,6 +48,7 @@
     cnt = new createjs.Container()
     stage.addChild(cnt)
     br = new BookReader(cnt, options)
+    cnt.x = (1100 - br.getWidth())/2
   }
 
   function addImages() {
@@ -81,6 +82,8 @@
       scaleY = br.pageHeight / img.height;
       scale = Math.min(scaleX, scaleY);
       bmp.scaleX = bmp.scaleY = scale
+      bmp.x = (br.pageWidth - img.width*scale)/2
+      bmp.y = (br.pageHeight - img.height*scale)/2
       bmp.cache(0, 0, img.width, img.height, scale)
 
       //bmp.fitInto(br.pageWidth, br.pageHeight)
@@ -96,7 +99,7 @@
 </header>
 
 <div id='background'>
-  <canvas id="maincanvas" width="1366" height="768"></canvas>
+  <canvas id="maincanvas" width="1100" height="700"></canvas>
 </div>
 
 </body>

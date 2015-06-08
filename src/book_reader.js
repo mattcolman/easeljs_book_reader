@@ -6,17 +6,16 @@
       this.container = container;
       this.stageD = {x: 0, y: 0, width: 1366, height: 768}
 
-      if (options == null) {
-          options = {};
-        }
-      this.x = (ref = options.x) != null ? ref : 0;
-      this.y = (ref1 = options.y) != null ? ref1 : 0;
-      this.pageWidth = (ref2 = options.pageWidth) != null ? ref2 : 470;
-      this.pageHeight = (ref3 = options.pageHeight) != null ? ref3 : 748;
-      this.pageGap = (ref4 = options.pageGap) != null ? ref4 : 0;
-      this.maskWidth = (ref5 = options.maskWidth) != null ? ref5 : this.pageWidth * 2 + this.pageGap;
-      initPages = (ref6 = options.numPages) != null ? ref6 : 2;
-      startPage = (ref7 = options.startPage) != null ? ref7 : 0;
+      if (options == null) options = {};
+      this.x          = options.x != null          ? options.x : 0;
+      this.y          = options.y != null          ? options.y : 0;
+      this.pageWidth  = options.pageWidth != null  ? options.pageWidth : 470;
+      this.pageHeight = options.pageHeight != null ? options.pageHeight : 748;
+      this.pageGap    = options.pageGap != null    ? options.pageGap : 0;
+      this.maskWidth  = options.maskWidth != null  ? options.maskWidth : this.pageWidth * 2 + this.pageGap;
+      initPages       = options.numPages != null   ? options.numPages : 2;
+      startPage       = options.startPage != null  ? options.startPage : 0;
+
       initPages = Math.max(initPages, 2);
       // this._shadowLeft  = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 1), createjs.Graphics.getRGB(255, 0, 0, 0))
       // this._shadowRight = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 0), createjs.Graphics.getRGB(255, 0, 0, 1))
@@ -198,17 +197,16 @@
     };
 
     p._setupClickObject = function() {
-      //var clicker;
-      //clicker = new createjs.Container;
-      //clicker.addHitArea(new createjs.Rectangle(0, 0, this.stageD.width, this.stageD.height));
-      //this.addChild(clicker);
-      this.container.addEventListener("mousedown", createjs.proxy(this._handlePress, this))
-      this.container.addEventListener("click", createjs.proxy(this._handleClick, this))
+      var clicker;
+      clicker = this._makeSolid(this.getWidth(), this.getHeight(), createjs.Graphics.getRGB(255, 0, 0, 3/255))
+      this.container.addChild(clicker);
+      clicker.addEventListener("mousedown", createjs.proxy(this._handlePress, this))
+      clicker.addEventListener("click", createjs.proxy(this._handleClick, this))
     };
 
     p._handlePress = function(e) {
       console.log('mouse DOWN!')
-      return this.startX = e.stageX;
+      this.startX = e.stageX;
     };
 
     findClickable = function(o) {
@@ -232,7 +230,7 @@
         this.turnPage(1);
       } else {
         var objUnderPoint;
-        objects = e.currentTarget.getObjectsUnderPoint(e.stageX, e.stageY);
+        objects = this.container.getObjectsUnderPoint(e.stageX, e.stageY);
         for (k = 0, len = objects.length; k < len; k++) {
           possibleCarousel = objects[k];
           clickable = findClickable(possibleCarousel);
@@ -256,11 +254,10 @@
     }
 
     p._addMask = function(x, y, side) {
-      var color, h, mask, w;
-      color = side === "left" ? "#ff0000" : "#ffff00";
-      w = this.maskWidth;
-      h = this.pageHeight;
-      mask = makeRect(w, h, color);
+      var color = side === "left" ? "#ff0000" : "#ffff00";
+      var w = this.maskWidth;
+      var h = this.pageHeight;
+      var mask = makeRect(w, h, color);
       mask.alpha = .3;
       mask.set({
         x: x,
@@ -277,6 +274,14 @@
       return s;
     };
 
+    p._makeSolid = function(w, h, c) {
+      g = new createjs.Graphics();
+      g.beginFill(c)
+       .drawRect(0, 0, w, h);
+      s = new createjs.Shape(g);
+      return s;
+    }
+
     return createjs.promote(BookReader, "EventDispatcher");
 
   })();
@@ -288,17 +293,16 @@
     function Page(book, bounds) {
       this.Container_constructor();
 
-      var grad, gradWidth, white;
       this.book = book;
       this.bounds = bounds;
       this.initialize();
-      white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
+      var white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
       this.addChild(white);
-      gradWidth = 40;
+      var gradWidth = 40;
       if (book._gradientImage == null) {
         book._gradientImage = this._makeGradient(gradWidth, this.bounds.height)
       }
-      grad = new createjs.Bitmap(book._gradientImage)
+      var grad = new createjs.Bitmap(book._gradientImage)
       if (this.book.numPages % 2) {
         grad.scaleX = 1;
       } else {
@@ -325,14 +329,13 @@
     };
 
     p2._makeGradient = function(w, h) {
-      var cnt, g1, g2, s1, s2;
-      cnt = new createjs.Container;
-      g1 = new createjs.Graphics();
+      var cnt = new createjs.Container;
+      var g1 = new createjs.Graphics();
       g1.beginLinearGradientFill([createjs.Graphics.getRGB(0, 0, 0, 0), createjs.Graphics.getRGB(0, 0, 0, 0.5)], [1, 0], 0, 0, w, 0).drawRect(0, 0, w, h);
-      s1 = new createjs.Shape(g1);
-      g2 = new createjs.Graphics();
+      var s1 = new createjs.Shape(g1);
+      var g2 = new createjs.Graphics();
       g2.beginLinearGradientFill([createjs.Graphics.getRGB(0, 0, 0, 0), createjs.Graphics.getRGB(0, 0, 0, .7)], [1, 0], 0, 0, 3, 0).drawRect(0, 0, 10, h);
-      s2 = new createjs.Shape(g2);
+      var s2 = new createjs.Shape(g2);
       cnt.addChild(s1, s2);
       cnt.cache(0, 0, w, h);
       return cnt.cacheCanvas;

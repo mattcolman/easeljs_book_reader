@@ -1,7 +1,29 @@
 (function () {
 
+  /**
+   * @author Matt Colman http://mattcolman.com/ @matt_colman
+   */
   BookReader = (function() {
-
+    /**
+     * @class BookReader
+     *
+     * @example
+     * options = {
+     *   numPages: 6,
+     *   x: 0,
+     *   y: 0,
+     *   pageWidth: 500,
+     *   pageHeight: 700,
+     *   pageGap: 0,
+     *   startPage: 0
+     * }
+     *
+     * cnt = new createjs.Container()
+     * stage.addChild(cnt)
+     * br = new BookReader(cnt, options)
+     *
+     * @constructor
+     */
     function BookReader(container, options) {
       this.container = container;
       if (options == null) options = {};
@@ -11,11 +33,10 @@
     var p = createjs.extend(BookReader, createjs.EventDispatcher);
 
   // public properties:
-
-    p.debug = false;
+    p.debug = false; // debug turns of console logs and prints the page number.
 
   // public methods:
-
+    // initialize the book with hash of options.
     p.init = function(options) {
       this.x          = options.x != null          ? options.x          : 0;
       this.y          = options.y != null          ? options.y          : 0;
@@ -42,13 +63,7 @@
     };
 
 
-    p.handleClick = function(target) {
-      if (target.pageNumber != null) {
-        this.turnPage(-1 + target.pageNumber%2*2)
-      }
-      this.dispatchEvent("click", target);
-    };
-
+    // show page by index
     p.showPage = function(i) {
       var j, k, ref, ref1, ref2;
       for (j = k = ref = this.currentPageNo, ref1 = this.currentPageNo + 1; ref <= ref1 ? k <= ref1 : k >= ref1; j = ref <= ref1 ? ++k : --k) {
@@ -59,21 +74,15 @@
       return (ref2 = this.allPages[i + 1]) != null ? ref2.visible = true : void 0;
     };
 
+    // dynamically add new blank pages to the end of the book
     p.addBlankPages = function(num) {
-      var i, k, ref, results;
-      if (num % 2) {
-        num++;
-      }
-      results = [];
-      for (i = k = 0, ref = num; 0 <= ref ? k < ref : k > ref; i = 0 <= ref ? ++k : --k) {
-        results.push(this.addBlankPage());
-      }
-      return results;
+      if (num % 2) num++;
+      for (var i = 0; i < num; i++) this.addBlankPage()
     };
 
+    // dynamically add a new blank to the end of the book
     p.addBlankPage = function() {
-      var page;
-      page = new Page(this, {
+      var page = new Page(this, {
         width: this.pageWidth,
         height: this.pageHeight
       });
@@ -88,14 +97,20 @@
       this.numPages++;
     };
 
+    // get page by index
+    // @returns class Page
     p.getPage = function(i) {
       return this.allPages[i];
     };
 
+    // get the page container by index
+    // @returns createjs.Container
     p.getPageContainer = function(i) {
       return this.allPages[i].container;
     }
 
+    // turn the current page by direction
+    // 1 (forword) or -1 (backward)
     p.turnPage = function(direction) {
       var grad, increment, k, leftMask, leftPage, len, mask, pageNo, ref, rightMask, rightPage, time;
       increment = direction * 2;
@@ -188,27 +203,30 @@
       })(this));
     };
 
+    // get book's width
     p.getWidth = function() {
       return this.bookWidth;
     };
 
+    // get book's height
     p.getHeight = function() {
       return this.pageHeight;
     };
 
+
+
+    // ------------- PRIVATE ------------- \\
+    // @private
     p._setupClickObject = function() {
       var clicker;
       clicker = this._makeSolid(this.getWidth(), this.getHeight(), createjs.Graphics.getRGB(255, 0, 0, 3/255))
       this.container.addChild(clicker);
-      clicker.addEventListener("mousedown", createjs.proxy(this._handlePress, this))
-      clicker.addEventListener("click", createjs.proxy(this._handleClick, this))
+      clicker.addEventListener("mousedown", createjs.proxy(this._handleMouseDown, this))
+      clicker.addEventListener("click", createjs.proxy(this._handleMouseUp, this))
     };
 
-    p._handlePress = function(e) {
-      this.startX = e.stageX;
-    };
-
-    findClickable = function(o) {
+    // @private
+    _findClickable = function(o) {
       while (o) {
         if (o.clickable) {
           return o;
@@ -218,7 +236,13 @@
       return null;
     };
 
-    p._handleClick = function(e) {
+    // @private
+    p._handleMouseDown = function(e) {
+      this.startX = e.stageX;
+    };
+
+    // @private
+    p._handleMouseUp = function(e) {
       var threshold = 50;
       var endX = e.stageX;
       var distance = endX - this.startX;
@@ -231,19 +255,31 @@
         objects = this.container.getObjectsUnderPoint(e.stageX, e.stageY);
         for (k = 0, len = objects.length; k < len; k++) {
           possibleCarousel = objects[k];
-          clickable = findClickable(possibleCarousel);
+          clickable = _findClickable(possibleCarousel);
           if ((clickable != null) && clickable.parent.visible) {
             objUnderPoint = clickable;
             break;
           }
         }
         if (objUnderPoint != null) {
-          this.handleClick(objUnderPoint);
+          this._handleClick(objUnderPoint);
         }
       }
     };
 
-    makeRect = function(w, h, color) {
+    // handles a click (not a swipe)
+    // this allows display objects inside the book
+    // to be clickable. A click event is dispatched.
+    // @private
+    p._handleClick = function(target) {
+      if (target.pageNumber != null) {
+        this.turnPage(-1 + target.pageNumber%2*2)
+      }
+      this.dispatchEvent("click", target);
+    };
+
+    // @private
+    _makeRect = function(w, h, color) {
       g = new createjs.Graphics()
       g.beginFill(color)
        .drawRect(0, 0, w, h)
@@ -251,11 +287,12 @@
       return s;
     }
 
+    // @private
     p._addMask = function(x, y, side) {
       var color = side === "left" ? "#ff0000" : "#ffff00";
       var w = this.bookWidth;
       var h = this.pageHeight;
-      var mask = makeRect(w, h, color);
+      var mask = _makeRect(w, h, color);
       mask.alpha = .3;
       mask.set({
         x: x,
@@ -265,6 +302,7 @@
       return mask;
     };
 
+    // @private
     p._makeGradient = function(w, h, c1, c2) {
       g = new createjs.Graphics();
       g.beginLinearGradientFill([c1, c2], [0, 1], 0, 0, w, 0).drawRect(0, 0, w, h);
@@ -272,6 +310,7 @@
       return s;
     };
 
+    // @private
     p._makeSolid = function(w, h, c) {
       g = new createjs.Graphics();
       g.beginFill(c)
@@ -286,15 +325,17 @@
 
 
 
+
+  // Page class
   Page = (function () {
 
     function Page(book, bounds) {
       this.Container_constructor();
+      this.initialize();
 
       this.book = book;
       this.bounds = bounds;
-      this.initialize();
-      var white = makeRect(this.bounds.width, this.bounds.height, "#ffffff");
+      var white = _makeRect(this.bounds.width, this.bounds.height, "#ffffff");
       this.addChild(white);
       var gradWidth = 40;
       if (book._gradientImage == null) {
@@ -317,6 +358,7 @@
 
     var p2 = createjs.extend(Page, createjs.Container);
 
+    // debug only
     p2.showPageNumber = function(num) {
       var txt = new createjs.Text("" + num, "normal 20px Arial", "#000");
       txt.set({
@@ -326,6 +368,7 @@
       return this.addChild(txt);
     };
 
+    // @private
     p2._makeGradient = function(w, h) {
       var cnt = new createjs.Container;
       var g1 = new createjs.Graphics();

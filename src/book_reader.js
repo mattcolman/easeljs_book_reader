@@ -4,18 +4,30 @@
 
     function BookReader(container, options) {
       this.container = container;
-
       if (options == null) options = {};
+      this.init(options);
+    }
+
+    var p = createjs.extend(BookReader, createjs.EventDispatcher);
+
+  // public properties:
+
+    p.debug = false;
+
+  // public methods:
+
+    p.init = function(options) {
       this.x          = options.x != null          ? options.x          : 0;
       this.y          = options.y != null          ? options.y          : 0;
-      this.pageWidth  = options.pageWidth != null  ? options.pageWidth  : 470;
-      this.pageHeight = options.pageHeight != null ? options.pageHeight : 748;
+      this.pageWidth  = options.pageWidth != null  ? options.pageWidth  : 500;
+      this.pageHeight = options.pageHeight != null ? options.pageHeight : 700;
       this.pageGap    = options.pageGap != null    ? options.pageGap    : 0;
       this.bookWidth  = options.bookWidth != null  ? options.bookWidth  : this.pageWidth * 2 + this.pageGap;
-      initPages       = options.numPages != null   ? options.numPages   : 2;
+      numPages        = options.numPages != null   ? options.numPages   : 2;
       startPage       = options.startPage != null  ? options.startPage  : 0;
 
-      initPages = Math.max(initPages, 2);
+      numPages = Math.max(numPages, 2); // minimum of 2 pages.
+
       // this._shadowLeft  = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 1), createjs.Graphics.getRGB(255, 0, 0, 0))
       // this._shadowRight = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 0), createjs.Graphics.getRGB(255, 0, 0, 1))
       this._shadowLeftBlack = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 1), createjs.Graphics.getRGB(0, 0, 0, 1))
@@ -24,19 +36,13 @@
       this.numPages = 0;
       this.allPages = [];
       this.currentPageNo = startPage - startPage % 2;
-      this.addBlankPages(initPages);
+      this.addBlankPages(numPages);
       this._setupClickObject();
       this.showPage(this.currentPageNo);
     };
 
-    var p = createjs.extend(BookReader, createjs.EventDispatcher);
 
-  // public properties:
-    p.DEBUG = false
-
-  // public methods:
     p.handleClick = function(target) {
-      console.log("handleClick!!")
       if (target.pageNumber != null) {
         this.turnPage(-1 + target.pageNumber%2*2)
       }
@@ -95,17 +101,16 @@
       increment = direction * 2;
       pageNo = this.currentPageNo + increment;
       if (pageNo < 0 || pageNo > this.numPages - 1) {
-        console.log('BookReader: No more pages this way!!');
+        if (this.debug) console.log('BookReader: No more pages this way!!');
         return;
       }
       //this.playSound('page turn');
       time = .4;
       //time = 5
-      console.log('pageNo', pageNo)
       rightPage = this.allPages[pageNo + 1];
       leftPage = this.allPages[pageNo];
 
-      console.log('BookReader: show pages', leftPage.name, rightPage.name);
+      if (this.debug) console.log('BookReader: show pages', leftPage.pageNumber, rightPage.pageNumber);
 
       this.container.addChild(rightPage, leftPage);
       rightPage.visible = true;
@@ -200,7 +205,6 @@
     };
 
     p._handlePress = function(e) {
-      console.log('mouse DOWN!')
       this.startX = e.stageX;
     };
 
@@ -215,7 +219,6 @@
     };
 
     p._handleClick = function(e) {
-      console.log('mouse UP!')
       var threshold = 50;
       var endX = e.stageX;
       var distance = endX - this.startX;

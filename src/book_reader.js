@@ -44,6 +44,7 @@
       this.pageHeight = options.pageHeight != null ? options.pageHeight : 700;
       this.pageGap    = options.pageGap != null    ? options.pageGap    : 0;
       this.bookWidth  = options.bookWidth != null  ? options.bookWidth  : this.pageWidth * 2 + this.pageGap;
+      this.background = options.background != null ? options.background : "#ffffff"
       numPages        = options.numPages != null   ? options.numPages   : 2;
       startPage       = options.startPage != null  ? options.startPage  : 0;
 
@@ -77,15 +78,16 @@
     // dynamically add new blank pages to the end of the book
     p.addBlankPages = function(num) {
       if (num % 2) num++;
-      for (var i = 0; i < num; i++) this.addBlankPage()
+      pages = []
+      for (var i = 0; i < num; i++) {
+        pages.push(this.addBlankPage())
+      }
+      return pages;
     };
 
     // dynamically add a new blank to the end of the book
     p.addBlankPage = function() {
-      var page = new Page(this, {
-        width: this.pageWidth,
-        height: this.pageHeight
-      });
+      var page = new Page(this, {width: this.pageWidth, height: this.pageHeight}, this.background);
       page.set({
         x: this.x + this.numPages % 2 * (this.pageWidth + this.pageGap),
         y: this.y
@@ -95,6 +97,7 @@
       this.container.addChild(page);
       this.allPages.push(page);
       this.numPages++;
+      return page;
     };
 
     // get page by index
@@ -106,7 +109,10 @@
     // get the page container by index
     // @returns createjs.Container
     p.getPageContainer = function(i) {
-      return this.allPages[i].container;
+      if (this.allPages[i] != null)
+        return this.allPages[i].container;
+      else
+        return null
     }
 
     // turn the current page by direction
@@ -329,14 +335,14 @@
   // Page class
   Page = (function () {
 
-    function Page(book, bounds) {
+    function Page(book, bounds, background) {
       this.Container_constructor();
       this.initialize();
 
       this.book = book;
       this.bounds = bounds;
-      var white = _makeRect(this.bounds.width, this.bounds.height, "#ffffff");
-      this.addChild(white);
+      var bg = this._makeBackground(background)
+      this.addChild(bg);
       var gradWidth = 40;
       if (book._gradientImage == null) {
         book._gradientImage = this._makeGradient(gradWidth, this.bounds.height)
@@ -357,6 +363,19 @@
     }
 
     var p2 = createjs.extend(Page, createjs.Container);
+
+    p2._makeBackground = function(imageOrColor) {
+      g = new createjs.Graphics()
+      var isColor = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(imageOrColor)
+      if (isColor) {
+        g.beginFill(imageOrColor)
+      } else {
+        g.beginBitmapFill(imageOrColor)
+      }
+      g.drawRect(0, 0, this.bounds.width, this.bounds.height)
+      s = new createjs.Shape(g)
+      return s;
+    }
 
     // debug only
     p2.showPageNumber = function(num) {

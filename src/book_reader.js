@@ -3,6 +3,13 @@
   /**
    * @author Matt Colman http://mattcolman.com/ @matt_colman
    */
+
+  /**
+   * TODO
+   * add timeline add the bottom of the book reader
+   * possibly use TweenJS instead of TweenMax?
+   * use RequireJS? How does easeljs do it?
+  */
   BookReader = (function() {
     /**
      * @class BookReader
@@ -52,7 +59,7 @@
 
       // this._shadowLeft  = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 1), createjs.Graphics.getRGB(255, 0, 0, 0))
       // this._shadowRight = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(255, 0, 0, 0), createjs.Graphics.getRGB(255, 0, 0, 1))
-      this._shadowLeftBlack = this._makeGradient(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0, 1), createjs.Graphics.getRGB(0, 0, 0, 1))
+      this._shadowLeftBlack = this._makeSolid(this.pageWidth, this.pageHeight, createjs.Graphics.getRGB(0, 0, 0))
       this._shadowRightBlack = this._shadowLeftBlack.clone()
       this.masks = [];
       this.numPages = 0;
@@ -161,10 +168,10 @@
         // rightPage.addChild(grad);
 
         currentLeftPage = this.allPages[this.currentPageNo];
-        currentLeftPage.addChild(this._shadowLeftBlack.set({alpha:1}));
+        currentLeftPage.addChild(this._shadowLeftBlack.set({alpha:.8}));
         TweenMax.from(this._shadowLeftBlack, time*.8, {delay: time*.2, alpha: 0, ease: Power2.easeOut})
 
-        rightPage.addChild(this._shadowRightBlack.set({alpha:1}));
+        rightPage.addChild(this._shadowRightBlack.set({alpha:.8}));
         TweenMax.to(this._shadowRightBlack, time*.8, {alpha: 0, ease: Power2.easeOut})
       } else {
         leftMask = this._addMask(this.x - this.bookWidth, this.y, "left");
@@ -185,10 +192,10 @@
         // leftPage.addChild(grad);
 
         currentRightPage = this.allPages[this.currentPageNo+1];
-        currentRightPage.addChild(this._shadowRightBlack.set({alpha:1}));
+        currentRightPage.addChild(this._shadowRightBlack.set({alpha:.8}));
         TweenMax.from(this._shadowRightBlack, time*.8, {delay: time*.2, alpha: 0, ease: Power2.easeOut})
 
-        leftPage.addChild(this._shadowLeftBlack.set({alpha:1}));
+        leftPage.addChild(this._shadowLeftBlack.set({alpha:.8}));
         TweenMax.to(this._shadowLeftBlack, time*.8, {alpha: 0, ease: Power2.easeOut})
       }
       leftPage.mask = leftMask;

@@ -206,10 +206,10 @@
       //   alpha: 0,
       //   ease: Power3.easeOut
       // });
-      //this.stage.mouseEnabled = false;
+      this.container.mouseEnabled = false;
       TweenMax.delayedCall(time, (function(_this) {
         return function() {
-         // _this.stage.mouseEnabled = true;
+          _this.container.mouseEnabled = true;
           _this.showPage(pageNo);
           _this.dispatchEvent("page-turn", _this.currentPageNo, _this.currentPageNo - increment);
         };
@@ -265,7 +265,8 @@
         this.turnPage(1);
       } else {
         var objUnderPoint;
-        objects = this.container.getObjectsUnderPoint(e.stageX, e.stageY);
+        localPt = this.container.globalToLocal(e.stageX, e.stageY);
+        objects = this.container.getObjectsUnderPoint(localPt.x, localPt.y);
         for (k = 0, len = objects.length; k < len; k++) {
           possibleCarousel = objects[k];
           clickable = _findClickable(possibleCarousel);

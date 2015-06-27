@@ -226,6 +226,12 @@
       return this.pageHeight;
     };
 
+    p.clear = function() {
+      for (var i = 0; i < this.allPages.length; i++) {
+        this.container.removeChild(this.allPages[i].container)
+      };
+    }
+
 
 
     // ------------- PRIVATE ------------- \\
